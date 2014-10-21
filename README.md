@@ -1,6 +1,6 @@
 RCOM PROJECT 1
 
-  - Leonardo Faria @leonardo-faria
-  - Maria João Marques @MariaJRM
-  - Paulo Jorge Costa @pajocos
-  - Sofia Reis @SofiaReis
+  - Leonardo Faria 
+  - Maria João Marques
+  - Paulo Jorge Costa
+  - Sofia Reis 
