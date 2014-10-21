@@ -30,3 +30,4 @@ int llopen(int fd,int mMode);
 int llwrite(int fd, char * buffer, int length);
 int llread(int fd, char * buffer);
 int llclose(int fd);
+int state_machine(int fd, unsigned char trama[5]);

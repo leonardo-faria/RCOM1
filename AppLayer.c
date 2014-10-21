@@ -1,6 +1,7 @@
 #include "AppLayer.h"
 
-
+#define AE 0x03
+#define AR 0x01
 
 char UA[5],SET[5];
 int mode;
@@ -18,7 +19,7 @@ int llopen(int fd,int mMode)
 	SET[0] = F;
 	SET[1] = A;
 	SET[2] = 0x03;
-	SET[3] = UA[1]^UA[2];
+	SET[3] = SET[1]^SET[2];
 	SET[4] = F;
 
 	int c, res;
@@ -70,8 +71,10 @@ int llopen(int fd,int mMode)
 			aux += num;
 			missing -= num;
 		}
+		
+		state_machine(fd, UA);
 
-		unsigned char *temp;
+		/*unsigned char *temp;
 		int state=0;
 		while(state!=5)
 		{
@@ -113,7 +116,7 @@ int llopen(int fd,int mMode)
 				else state=0;
 				break;	
 			}
-		}
+		}*/
 	}
 	else
 	{
@@ -177,7 +180,78 @@ int llopen(int fd,int mMode)
 	return fd;
 }
 
+int state_machine(int fd, unsigned char trama[5])
+{
+	unsigned char *temp;
+	int state=0;
+	while(state!=5)
+	{
+		switch(state)
+		{
+			case 0:
+			read(fd,temp, 1);
+			if(*temp==trama[0])
+				state=1;
+			break;
+				case 1:
+				read(fd,temp, 1);
+				if(*temp==trama[1])
+					state=2;
+				else if(*temp!=trama[0])
+					state=0;
+				break;	
+				case 2:
+				read(fd,temp, 1);
+				if(*temp==trama[0])
+					state=1;
+				else if(*temp==trama[2])
+					state=3;
+				else state=0;
+				break;	
+				case 3:
+				read(fd,temp, 1);
+				if(*temp==trama[0])
+					state=1;
+				else if(*temp==trama[3])
+					state=4;
+				else state=0;
+				break;	
+				case 4:
+				
+				read(fd,temp, 1);
+				if(*temp==trama[4])
+					state=5;
+				else state=0;
+				break;	
+			}
+		}
+	}
+
 int llclose(int fd)
 {
-	
+	if(mode==0)
+	{
+		unsigned char DISC[5];
+		DISC[0] = F;
+		DISC[1] = AE;
+		DISC[2] = 0x0B;
+		DISC[3] = DISC[1]^DISC[2];
+		DISC[4] = F;
+		
+		if(state_machine(fd, DISC) == ;
+		
+		
+		
+		
+	}
+	else
+	{
+		unsigned char DISC[5];
+		DISC[0] = F;
+		DISC[1] = AR;
+		DISC[2] = 0x0B;
+		DISC[3] = DISC[1]^DISC[2];
+		DISC[4] = F;
+
+	}
 }
