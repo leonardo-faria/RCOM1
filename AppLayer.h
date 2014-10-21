@@ -35,7 +35,7 @@ struct applicationLayer {
 	SET[0] = F;
 	SET[1] = A;
 	SET[2] = 0x03;
-	SET[3] = UA[1]^SET[2];
+	SET[3] = UA[1]^UA[2];
 	SET[4] = F;
 
 

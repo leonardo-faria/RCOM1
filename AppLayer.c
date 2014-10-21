@@ -1,9 +1,43 @@
 #include "AppLayer.h"
 
 
-int llopen(AppLayer apl)
+int llopen(int fd,int mMode)
 {
-	int fd=apl.fileDescriptor;
+	int c, res;
+	struct termios oldtio,newtio;
+	char buf[255];
+
+	mode=mMode;
+	
+
+
+	if ( tcgetattr(fd,&oldtio) == -1) { 
+		perror("tcgetattr");
+		exit(-1);
+	}
+
+	AppLayer apl;
+	apl.fileDescriptor = fd;
+    apl.status = RECEIVER; //TODO mudar isto
+
+    bzero(&newtio, sizeof(newtio));
+    newtio.c_cflag = BAUDRATE | CS8 | CLOCAL | CREAD;
+    newtio.c_iflag = IGNPAR;
+    newtio.c_oflag = 0;
+
+    newtio.c_lflag = 0;
+
+    newtio.c_cc[VTIME] = 0;   
+    newtio.c_cc[VMIN] = 1;
+
+
+
+    tcflush(fd, TCIOFLUSH);
+
+    if ( tcsetattr(fd,TCSANOW,&newtio) == -1) {
+    	perror("tcsetattr");
+    	exit(-1);
+    }
 
 	if(apl.status!=TRANSMITTER)
 	{
@@ -122,7 +156,7 @@ int llopen(AppLayer apl)
 			missing -= num;
 		}
 	}
-	return 
+	return fd;
 }
 
 int llclose(int fd)
