@@ -122,4 +122,10 @@ int llopen(AppLayer apl)
 			missing -= num;
 		}
 	}
+	return 
+}
+
+int llclose(int fd)
+{
+	
 }
