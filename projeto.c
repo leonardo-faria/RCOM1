@@ -1,4 +1,10 @@
 /*Non-Canonical Input Processing*/
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <termios.h>
+#include <stdio.h>
 #include "AppLayer.h"
 
 
@@ -24,11 +30,10 @@ int main(int argc, char** argv)
 		exit(-1);
 	}
 
-    llopen(fd,0);
-
-    csetattr(fd,TCSANOW,&oldtio);
-    close(fd);
-    return 0;
+	llopen(fd,0);
+	//csetattr(fd,TCSANOW,&oldtio);
+	close(fd);
+	return 0;
 }
 
 

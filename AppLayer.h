@@ -17,7 +17,7 @@
 #define TRANSMITTER 0
 #define RECEIVER 1
 
-volatile int STOP=FALSE;
+//volatile int STOP=FALSE;
 
 struct applicationLayer { 
 	int fileDescriptor; /*Descritor correspondente à porta série*/ 
@@ -25,21 +25,8 @@ struct applicationLayer {
 }typedef AppLayer; 
 
 
-	char UA[5],SET[5];
-	UA[0] = F;
-	UA[1] = A;
-	UA[2] = C;
-	UA[3] = UA[1]^UA[2];
-	UA[4] = F;
 
-	SET[0] = F;
-	SET[1] = A;
-	SET[2] = 0x03;
-	SET[3] = UA[1]^UA[2];
-	SET[4] = F;
-
-
-int llopen(AppLayer apl);
+int llopen(int fd,int mMode);
 int llwrite(int fd, char * buffer, int length);
 int llread(int fd, char * buffer);
 int llclose(int fd);

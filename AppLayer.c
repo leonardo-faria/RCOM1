@@ -1,8 +1,26 @@
 #include "AppLayer.h"
 
 
+
+char UA[5],SET[5];
+int mode;
+
+
 int llopen(int fd,int mMode)
 {
+	
+	UA[0] = F;
+	UA[1] = A;
+	UA[2] = C;
+	UA[3] = UA[1]^UA[2];
+	UA[4] = F;
+
+	SET[0] = F;
+	SET[1] = A;
+	SET[2] = 0x03;
+	SET[3] = UA[1]^UA[2];
+	SET[4] = F;
+
 	int c, res;
 	struct termios oldtio,newtio;
 	char buf[255];
@@ -18,7 +36,7 @@ int llopen(int fd,int mMode)
 
 	AppLayer apl;
 	apl.fileDescriptor = fd;
-    apl.status = RECEIVER; //TODO mudar isto
+    	apl.status = RECEIVER; //TODO mudar isto
 
     bzero(&newtio, sizeof(newtio));
     newtio.c_cflag = BAUDRATE | CS8 | CLOCAL | CREAD;
