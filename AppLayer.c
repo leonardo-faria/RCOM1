@@ -120,6 +120,9 @@ int llopen(int fd,int mMode)
 	}
 	else
 	{
+
+		state_machine(fd,SET);
+		/*
 		unsigned char *temp;
 		int state=0;
 		while(state!=5)
@@ -162,7 +165,7 @@ int llopen(int fd,int mMode)
 				else state=0;
 				break;	
 			}
-		}
+		}*/
 
 
 		unsigned char *aux = UA;
@@ -180,7 +183,7 @@ int llopen(int fd,int mMode)
 	return fd;
 }
 
-int state_machine(int fd, unsigned char trama[5])
+int state_machine(int fd, unsigned char tramas[5])
 {
 	unsigned char *temp;
 	int state=0;
@@ -238,8 +241,15 @@ int llclose(int fd)
 		DISC[3] = DISC[1]^DISC[2];
 		DISC[4] = F;
 		
-		if(state_machine(fd, DISC) == ;
 		
+		state_machine(fd, DISC);
+
+
+		if(close(fd) == 0)
+			return 1;
+		else
+			return -1;
+
 		
 		
 		
@@ -253,5 +263,14 @@ int llclose(int fd)
 		DISC[3] = DISC[1]^DISC[2];
 		DISC[4] = F;
 
+		state_machine(fd, DISC);
+
+		if(close(fd) == 0)
+			return 1;
+		else
+			return -1;
+
+
 	}
+	return -1;
 }

@@ -32,7 +32,8 @@ int main(int argc, char** argv)
 
 	llopen(fd,0);
 	//csetattr(fd,TCSANOW,&oldtio);
-	close(fd);
+	//close(fd);
+	llclose(fd);
 	return 0;
 }
 
