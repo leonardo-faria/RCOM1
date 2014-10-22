@@ -4,8 +4,10 @@ int read_t(int fd,unsigned char* uc, int n)
 {	
 	int r=-1;
 	alarm(3);
-	while(r<=0)
+	while(r<=0) {
 		r=read(fd,uc,n);
+		printf("ta a ler\n");
+	}
 	alarm(0);
 	falhas=0;
 
@@ -16,7 +18,10 @@ int write_t(int fd, unsigned char* uc, int n)
 {
 	int w=-1;
 	alarm(3);
-	while(w<=0) w=write(fd,uc,n);
+	while(w<=0) { 
+		w=write(fd,uc,n);
+		printf("ta a escrever\n");
+	}
 	alarm(0);
 	falhas = 0;
 	return w;
@@ -55,7 +60,7 @@ int llopen(int fd,int mMode)
 
 	AppLayer apl;
 	apl.fileDescriptor = fd;
-    apl.status = RECEIVER; //TODO mudar isto
+    	apl.status = RECEIVER; //TODO mudar isto
 
     bzero(&newtio, sizeof(newtio));
     newtio.c_cflag = BAUDRATE | CS8 | CLOCAL | CREAD;

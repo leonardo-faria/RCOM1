@@ -11,7 +11,6 @@ void alarmhandler(int signo) {
 	alarm(3);
 }
 
-
 int main(int argc, char** argv)
 {
 	int fd;
