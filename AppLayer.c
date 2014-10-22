@@ -1,10 +1,28 @@
 #include "AppLayer.h"
 
-#define AE 0x03
-#define AR 0x01
+int read_t(int fd,unsigned char* uc, int n)
+{	
+	int r=-1;
+	alarm(3);
+	while(r<=0)
+		r=read(fd,uc,n);
+	alarm(0);
+	falhas=0;
 
-char UA[5],SET[5];
-int mode;
+return r;	
+}
+
+int write_t(int fd, unsigned char* uc, int n)
+{
+	int w=-1;
+	alarm(3);
+	while(w<=0) w=write(fd,uc,n);
+	alarm(0);
+	falhas = 0;
+	return w;
+
+
+}
 
 
 int llopen(int fd,int mMode)
@@ -46,8 +64,8 @@ int llopen(int fd,int mMode)
 
     newtio.c_lflag = 0;
 
-    newtio.c_cc[VTIME] = 0;   
-    newtio.c_cc[VMIN] = 1;
+    newtio.c_cc[VTIME] = 1;   
+    newtio.c_cc[VMIN] = 0;
 
     tcflush(fd, TCIOFLUSH);
 
@@ -65,7 +83,7 @@ int llopen(int fd,int mMode)
     	int missing = size;
 
     	while(missing > 0) {
-    		num = write(fd,aux,missing);
+    		num = write_t(fd,aux,missing);
     		aux += num;
     		missing -= num;
     	}
@@ -83,7 +101,7 @@ int llopen(int fd,int mMode)
     	int missing = size;
 
     	while(missing > 0) {
-    		num = write(fd,aux,missing);
+    		num = write_t(fd,aux,missing);
     		aux += num;
     		missing -= num;
     	}
@@ -100,19 +118,19 @@ int state_machine(int fd, unsigned char trama[5])
 		switch(state)
 		{
 			case 0:
-			read(fd,temp, 1);
+			read_t(fd,temp, 1);
 			if(*temp==trama[0])
 				state=1;
 			break;
 			case 1:
-			read(fd,temp, 1);
+			read_t(fd,temp, 1);
 			if(*temp==trama[1])
 				state=2;
 			else if(*temp!=trama[0])
 				state=0;
 			break;	
 			case 2:
-			read(fd,temp, 1);
+			read_t(fd,temp, 1);
 			if(*temp==trama[0])
 				state=1;
 			else if(*temp==trama[2])
@@ -120,7 +138,7 @@ int state_machine(int fd, unsigned char trama[5])
 			else state=0;
 			break;	
 			case 3:
-			read(fd,temp, 1);
+			read_t(fd,temp, 1);
 			if(*temp==trama[0])
 				state=1;
 			else if(*temp==trama[3])
@@ -129,14 +147,13 @@ int state_machine(int fd, unsigned char trama[5])
 			break;	
 			case 4:
 
-			read(fd,temp, 1);
+			read_t(fd,temp, 1);
 			if(*temp==trama[4])
 				state=5;
 			else state=0;
 			break;	
 		}
-	}
-	//TODO timeouts!!
+	}  
 	return 0;
 }
 
@@ -151,7 +168,6 @@ int llclose(int fd)
 		DISC[3] = DISC[1]^DISC[2];
 		DISC[4] = F;
 
-		unsigned char UA[5];
 		UA[0] = F;
 		UA[1] = A;
 		UA[2] = C;
@@ -165,7 +181,7 @@ int llclose(int fd)
 		int missing = size;
 
 		while(missing > 0) {
-			num = write(fd,aux,missing);
+			num = write_t(fd,aux,missing);
 			aux += num;
 			missing -= num;
 		}
@@ -178,7 +194,7 @@ int llclose(int fd)
 			int missing = size;
 
 			while(missing > 0) {
-				num = write(fd,aux,missing);
+				num = write_t(fd,aux,missing);
 				aux += num;
 				missing -= num;
 			}
@@ -202,10 +218,13 @@ int llclose(int fd)
 		int missing = size;
 
 		while(missing > 0) {
-			num = write(fd,aux,missing);
+			num = write_t(fd,aux,missing);
 			aux += num;
 			missing -= num;
 		}
+
+		state_machine(fd, UA);
+
 	}
 
 	if(close(fd) == 0)
