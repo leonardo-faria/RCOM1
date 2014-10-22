@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall
+CFLAGS=
 SOURCES=AppLayer.c projeto.c
 EXECUTABLE=rcom
 

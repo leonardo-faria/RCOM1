@@ -183,7 +183,7 @@ int llopen(int fd,int mMode)
 	return fd;
 }
 
-int state_machine(int fd, unsigned char tramas[5])
+int state_machine(int fd, unsigned char trama[5])
 {
 	unsigned char *temp;
 	int state=0;
