@@ -37,7 +37,7 @@ int llopen(int fd,int mMode)
 
 	AppLayer apl;
 	apl.fileDescriptor = fd;
-    	apl.status = RECEIVER; //TODO mudar isto
+    apl.status = RECEIVER; //TODO mudar isto
 
     bzero(&newtio, sizeof(newtio));
     newtio.c_cflag = BAUDRATE | CS8 | CLOCAL | CREAD;
@@ -49,8 +49,6 @@ int llopen(int fd,int mMode)
     newtio.c_cc[VTIME] = 0;   
     newtio.c_cc[VMIN] = 1;
 
-
-
     tcflush(fd, TCIOFLUSH);
 
     if ( tcsetattr(fd,TCSANOW,&newtio) == -1) {
@@ -58,129 +56,39 @@ int llopen(int fd,int mMode)
     	exit(-1);
     }
 
-	if(apl.status!=TRANSMITTER)
-	{
-		unsigned char *aux = SET;
-		
-		int size = sizeof(SET) / sizeof(unsigned char);
-		int num = 0;
-		int missing = size;
+    if(apl.status==TRANSMITTER)
+    {
+    	unsigned char *aux = SET;
 
-		while(missing > 0) {
-			num = write(fd,aux,missing);
-			aux += num;
-			missing -= num;
-		}
-		
-		state_machine(fd, UA);
+    	int size = sizeof(SET) / sizeof(unsigned char);
+    	int num = 0;
+    	int missing = size;
 
-		/*unsigned char *temp;
-		int state=0;
-		while(state!=5)
-		{
-			switch(state)
-			{
-				case 0:
-				read(fd,temp, 1);
-				if(*temp==UA[0])
-					state=1;
-				break;
-				case 1:
-				read(fd,temp, 1);
-				if(*temp==UA[1])
-					state=2;
-				else if(*temp!=UA[0])
-					state=0;
-				break;	
-				case 2:
-				read(fd,temp, 1);
-				if(*temp==UA[0])
-					state=1;
-				else if(*temp==UA[2])
-					state=3;
-				else state=0;
-				break;	
-				case 3:
-				read(fd,temp, 1);
-				if(*temp==UA[0])
-					state=1;
-				else if(*temp==UA[3])
-					state=4;
-				else state=0;
-				break;	
-				case 4:
-				
-				read(fd,temp, 1);
-				if(*temp==UA[4])
-					state=5;
-				else state=0;
-				break;	
-			}
-		}*/
-	}
-	else
-	{
+    	while(missing > 0) {
+    		num = write(fd,aux,missing);
+    		aux += num;
+    		missing -= num;
+    	}
 
-		state_machine(fd,SET);
-		/*
-		unsigned char *temp;
-		int state=0;
-		while(state!=5)
-		{
-			switch(state)
-			{
-				case 0:
-				read(fd,temp, 1);
-				if(*temp==SET[0])
-					state=1;
-				break;
-				case 1:
-				read(fd,temp, 1);
-				if(*temp==SET[1])
-					state=2;
-				else if(*temp!=SET[0])
-					state=0;
-				break;	
-				case 2:
-				read(fd,temp, 1);
-				if(*temp==SET[0])
-					state=1;
-				else if(*temp==SET[2])
-					state=3;
-				else state=0;
-				break;	
-				case 3:
-				read(fd,temp, 1);
-				if(*temp==SET[0])
-					state=1;
-				else if(*temp==SET[3])
-					state=4;
-				else state=0;
-				break;	
-				case 4:
-				
-				read(fd,temp, 1);
-				if(*temp==SET[4])
-					state=5;
-				else state=0;
-				break;	
-			}
-		}*/
+    	state_machine(fd, UA);
+    }
+    else
+    {
+    	state_machine(fd,SET);
 
+    	unsigned char *aux = UA;
 
-		unsigned char *aux = UA;
-		
-		int size = sizeof(UA) / sizeof(unsigned char);
-		int num = 0;
-		int missing = size;
+    	int size = sizeof(UA) / sizeof(unsigned char);
+    	int num = 0;
+    	int missing = size;
 
-		while(missing > 0) {
-			num = write(fd,aux,missing);
-			aux += num;
-			missing -= num;
-		}
-	}
-	return fd;
+    	while(missing > 0) {
+    		num = write(fd,aux,missing);
+    		aux += num;
+    		missing -= num;
+    	}
+    }
+    return fd;
 }
 
 int state_machine(int fd, unsigned char trama[5])
@@ -196,43 +104,45 @@ int state_machine(int fd, unsigned char trama[5])
 			if(*temp==trama[0])
 				state=1;
 			break;
-				case 1:
-				read(fd,temp, 1);
-				if(*temp==trama[1])
-					state=2;
-				else if(*temp!=trama[0])
-					state=0;
-				break;	
-				case 2:
-				read(fd,temp, 1);
-				if(*temp==trama[0])
-					state=1;
-				else if(*temp==trama[2])
-					state=3;
-				else state=0;
-				break;	
-				case 3:
-				read(fd,temp, 1);
-				if(*temp==trama[0])
-					state=1;
-				else if(*temp==trama[3])
-					state=4;
-				else state=0;
-				break;	
-				case 4:
-				
-				read(fd,temp, 1);
-				if(*temp==trama[4])
-					state=5;
-				else state=0;
-				break;	
-			}
+			case 1:
+			read(fd,temp, 1);
+			if(*temp==trama[1])
+				state=2;
+			else if(*temp!=trama[0])
+				state=0;
+			break;	
+			case 2:
+			read(fd,temp, 1);
+			if(*temp==trama[0])
+				state=1;
+			else if(*temp==trama[2])
+				state=3;
+			else state=0;
+			break;	
+			case 3:
+			read(fd,temp, 1);
+			if(*temp==trama[0])
+				state=1;
+			else if(*temp==trama[3])
+				state=4;
+			else state=0;
+			break;	
+			case 4:
+
+			read(fd,temp, 1);
+			if(*temp==trama[4])
+				state=5;
+			else state=0;
+			break;	
 		}
 	}
+	//TODO timeouts!!
+	return 0;
+}
 
 int llclose(int fd)
 {
-	if(mode==0)
+	if(mode==TRANSMITTER)
 	{
 		unsigned char DISC[5];
 		DISC[0] = F;
@@ -240,19 +150,39 @@ int llclose(int fd)
 		DISC[2] = 0x0B;
 		DISC[3] = DISC[1]^DISC[2];
 		DISC[4] = F;
-		
-		
-		state_machine(fd, DISC);
 
+		unsigned char UA[5];
+		UA[0] = F;
+		UA[1] = A;
+		UA[2] = C;
+		UA[3] = UA[1]^UA[2];
+		UA[4] = F;
 
-		if(close(fd) == 0)
-			return 1;
-		else
-			return -1;
+		unsigned char *aux = DISC;
 
-		
-		
-		
+		int size = sizeof(DISC) / sizeof(unsigned char);
+		int num = 0;
+		int missing = size;
+
+		while(missing > 0) {
+			num = write(fd,aux,missing);
+			aux += num;
+			missing -= num;
+		}
+
+		if(state_machine(fd, DISC) == 0) {
+			aux = UA;
+
+			int size = sizeof(UA) / sizeof(unsigned char);
+			int num = 0;
+			int missing = size;
+
+			while(missing > 0) {
+				num = write(fd,aux,missing);
+				aux += num;
+				missing -= num;
+			}
+		}
 	}
 	else
 	{
@@ -265,12 +195,23 @@ int llclose(int fd)
 
 		state_machine(fd, DISC);
 
-		if(close(fd) == 0)
-			return 1;
-		else
-			return -1;
+		unsigned char *aux = DISC;
 
+		int size = sizeof(UA) / sizeof(unsigned char);
+		int num = 0;
+		int missing = size;
 
+		while(missing > 0) {
+			num = write(fd,aux,missing);
+			aux += num;
+			missing -= num;
+		}
 	}
+
+	if(close(fd) == 0)
+		return 1;
+	else
+		return -1;
+
 	return -1;
 }
