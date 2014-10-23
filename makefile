@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=
-SOURCES=AppLayer.c projeto.c
+SOURCES= projeto.c
 EXECUTABLE=rcom
 
 all:
