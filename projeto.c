@@ -1,5 +1,6 @@
 #include "projeto.h"
 
+//TODO cada array tem de ter uma versao transmitter e receiver (criar funções especiais para criar as tramas no momento)
 void initializeArrays () {
 	UA[0] = F;
 	UA[1] = A;
@@ -136,25 +137,29 @@ int llopen(AppLayer apl) {
 }
 
 int writeTramas(AppLayer apl) {
+	//TODO mudar estas variaveis (foi apenas para compilar corretamente)
 	unsigned char **tramas;
 
 	unsigned char *confirmationTrama;
 
 	unsigned numTramas;
 	unsigned lastTrama;
-	//TODO é preciso instalar aqui um alarme para fazer um numero de tentativas para escrever, as tramas neste momento já devem ter sido convertidas com stuffing, ver o tamanho de cada trama para lenght
 	unsigned length;
 	unsigned i;
 	for(i=0; i < numTramas;i++) {
+	//TODO é preciso instalar aqui um alarme para fazer um numero de tentativas para escrever(é preciso o alarme para fazer exit), as tramas neste momento já devem ter sido convertidas com stuffing, ver o tamanho de cada trama para lenght
 		alarm(1);
 		while(1) {
 			if(llwrite(apl.fileDescriptor,tramas[i],length)>0) {
 
-				llread(apl.fileDescriptor, confirmationTrama); 
+
+				if(llread(apl.fileDescriptor, confirmationTrama)>0) {
 
 				//TODO ver se recebeu rr ou rej e comparar. se rej reenviar
 
 				break;
+
+				}
 			}
 		}
 		alarm(0);
@@ -177,10 +182,9 @@ int llwrite(int fd, char * buffer, int length) {
 }
 
 int llread(int fd, char * buffer) {
-	
+	//para implementar
 }
 
-//TODO cada array tem de ter uma versao transmitter e receiver
 int llclose(AppLayer apl) 
 {
 	int num;
