@@ -14,11 +14,11 @@ void initializeArrays () {
 	SET[4] = F;
 
 	//TODO verificar estes valores
-	DISCW[0] = F;
-	DISCW[1] = AE;
-	DISCW[2] = 0x0B;
-	DISCW[3] = DISCW[1]^DISCW[2];
-	DISCW[4] = F;
+	DISCE[0] = F;
+	DISCE[1] = AE;
+	DISCE[2] = 0x0B;
+	DISCE[3] = DISCE[1]^DISCE[2];
+	DISCE[4] = F;
 
 	DISCR[0] = F;
 	DISCR[1] = AR;
@@ -28,7 +28,7 @@ void initializeArrays () {
 }
 
 void alarmhandler(int signo) {
-	printf("Failed to finish read\n");
+	printf("Failed to finish write/read\n");
 
 	if (++falhas != 3)
 		alarm(1);
@@ -68,12 +68,12 @@ int main(int argc, char** argv) {
 
 	llopen(apl);
 
-	if(mode ==0)
-		llwrite(apl);
-	else
-		llread(apl);
+	//if(mode ==0)
+	//	writeTramas(apl);
+	//else
+	//llread(apl);
 
-	//llclose(apl);
+	llclose(apl);
 }
 
 int llopen(AppLayer apl) {
@@ -135,26 +135,64 @@ int llopen(AppLayer apl) {
 	return 0;
 }
 
-int llread(AppLayer apl) {
+int writeTramas(AppLayer apl) {
+	unsigned char **tramas;
 
+	unsigned char *confirmationTrama;
+
+	unsigned numTramas;
+	unsigned lastTrama;
+	//TODO é preciso instalar aqui um alarme para fazer um numero de tentativas para escrever, as tramas neste momento já devem ter sido convertidas com stuffing, ver o tamanho de cada trama para lenght
+	unsigned length;
+	unsigned i;
+	for(i=0; i < numTramas;i++) {
+		alarm(1);
+		while(1) {
+			if(llwrite(apl.fileDescriptor,tramas[i],length)>0) {
+
+				llread(apl.fileDescriptor, confirmationTrama); 
+
+				//TODO ver se recebeu rr ou rej e comparar. se rej reenviar
+
+				break;
+			}
+		}
+		alarm(0);
+		falhas = 0;
+	}
 }
 
-int llwrite(AppLayer apl) {
+int llwrite(int fd, char * buffer, int length) {
+	int num = 0;
+	int missing = length;
 
+	while (missing > 0) {
+		num = write(fd, buffer, missing);
+		buffer += num;
+		missing -= num;
+	}
+	if(num == length)
+		return num;
+	else return -1;
+}
+
+int llread(int fd, char * buffer) {
+	
 }
 
 //TODO cada array tem de ter uma versao transmitter e receiver
 int llclose(AppLayer apl) 
 {
-	if(mode==0)
+	int num;
+	if(apl.mode==0)
 	{	
 		while(1)
 		{
 			printf("Writing DISC\n");
-			unsigned char *aux = DISCW;
+			unsigned char *aux = DISCE;
 
-			int size = sizeof(DISCW) / sizeof(unsigned char);
-			int num = 0;
+			int size = sizeof(DISCE) / sizeof(unsigned char);
+			num = 0;
 			int missing = size;
 
 			while(missing > 0)
@@ -166,10 +204,11 @@ int llclose(AppLayer apl)
 
 			if(stateMachine(apl.fileDescriptor, DISCR) == 0)
 			{
+				printf("chegou ao fim da stateMachine do emissor, recebeu o DISC, a enviar o UA\n");
 				aux = UA;
 
 				int size = sizeof(UA) / sizeof(unsigned char);
-				int num = 0;
+				num = 0;
 				int missing = size;
 
 				while(missing > 0) {
@@ -183,12 +222,12 @@ int llclose(AppLayer apl)
 	}
 	else
 	{
-		stateMachine(apl.fileDescriptor, DISCW);
+		stateMachine(apl.fileDescriptor, DISCE);
 
 		unsigned char *aux = DISCR;
 
 		int size = sizeof(UA) / sizeof(unsigned char);
-		int num = 0;
+		num = 0;
 		int missing = size;
 
 		while(missing > 0) {
@@ -196,11 +235,16 @@ int llclose(AppLayer apl)
 			aux += num;
 			missing -= num;
 		}
+
+		stateMachine(apl.fileDescriptor, UA);
 	}
 
 	tcsetattr(apl.fileDescriptor, TCSANOW, &oldtio);
 	close(apl.fileDescriptor);
-	return 0;
+
+	if(num > 0)
+		return 0; //sucesso
+	else return -1; //erro
 }
 
 int stateMachine(int fd, unsigned char trama[5]) {

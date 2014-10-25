@@ -22,9 +22,9 @@
 #define TRANSMITER 0
 #define RECEIVER 1
 
-char UA[5],SET[5], DISCW[5], DISCR[5];
+char UA[5],SET[5], DISCE[5], DISCR[5];
 
-int falhas, mode;
+int falhas;
 struct termios oldtio,newtio;
 
 struct applicationLayer { 
@@ -34,9 +34,10 @@ struct applicationLayer {
 
 int llopen(AppLayer apl);
 
-int llread(AppLayer apl);
+int llread(int fd, char * buffer) ;
 
-int llwrite(AppLayer apl);
+int writeTramas(AppLayer apl);
+int llwrite(int fd, char * buffer, int length);
 
 int llclose(AppLayer apl);
 
