@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=
-SOURCES= projeto.c
+SOURCES= aplication.c dataLink.c
 EXECUTABLE=rcom
 
 all:
