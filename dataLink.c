@@ -76,7 +76,7 @@ int stuffing(unsigned char* buf, int length, unsigned char** stufBuf) {
 			else
 				(*stufBuf)[j++] = XOR_ESCAPE;
 		} else
-			(*stufBuf)[j++] = buf[i];
+		(*stufBuf)[j++] = buf[i];
 	}
 
 	(*stufBuf)[j++] = F;
@@ -96,10 +96,10 @@ int destuffing(unsigned char* buf, int length, unsigned char** unstBuf) {
 				(*unstBuf)[j++] = ESCAPE;
 				i += 2;
 			} else
-				return -1;
+			return -1;
 
 		} else
-			(*unstBuf)[j++] = buf[i++];
+		(*unstBuf)[j++] = buf[i++];
 	}
 	return j;
 }
@@ -115,7 +115,7 @@ int create_control_frame(unsigned char control, unsigned char** frame) {
 }
 
 int create_info_frame(int ns, unsigned char *packages, int packages_size,
-		unsigned char** frame) {
+	unsigned char** frame) {
 	(*frame) = malloc(packages_size + 4);
 	(*frame)[0] = A;
 	if (ns == 0)
@@ -250,26 +250,27 @@ int llclose(AppLayer apl) {
 		}
 	} else {
 		unsigned char *disc;
-		create_control_frame(DISC, &disc);
+		int size = create_control_frame(DISC, &disc);
 		while (falhas < 3) {
+			timeout = 0;
+			alarm(3);
 			if (controlStateMachine(apl.fileDescriptor, disc) == 0) {
 				printf("DISC received. Sending it again!\n");
-				timeout = 0;
-				alarm(3);
-
-				unsigned char *ua;
-				int size = create_control_frame(UA, &ua);
 				num = 0;
 				int missing = size;
 
 				while (missing > 0) {
-					num = write(apl.fileDescriptor, ua, missing);
-					ua += num;
+					num = write(apl.fileDescriptor, disc, missing);
+					disc += num;
 					missing -= num;
 				}
 
-				if (controlStateMachine(apl.fileDescriptor, ua) == 0)
+				unsigned char *ua;
+				create_control_frame(UA, &ua);
+				if(controlStateMachine(apl.fileDescriptor, ua) == 0) {
 					printf("UA received!\n");
+					break;
+				}
 			}
 		}
 	}
@@ -295,17 +296,17 @@ int controlStateMachine(int fd, unsigned char trama[5]) {
 		if (r > 0) {
 			alarm(0);
 			switch (state) {
-			case 0:
+				case 0:
 				if (*temp == trama[0])
 					state = 1;
 				break;
-			case 1:
+				case 1:
 				if (*temp == trama[1])
 					state = 2;
 				else if (*temp != trama[0])
 					state = 0;
 				break;
-			case 2:
+				case 2:
 				if (*temp == trama[0])
 					state = 1;
 				else if (*temp == trama[2])
@@ -313,7 +314,7 @@ int controlStateMachine(int fd, unsigned char trama[5]) {
 				else
 					state = 0;
 				break;
-			case 3:
+				case 3:
 				if (*temp == trama[0])
 					state = 1;
 				else if (*temp == trama[3])
@@ -321,7 +322,7 @@ int controlStateMachine(int fd, unsigned char trama[5]) {
 				else
 					state = 0;
 				break;
-			case 4:
+				case 4:
 				if (*temp == trama[4])
 					state = 5;
 				else
@@ -343,34 +344,34 @@ int infoStateMachine(unsigned char *frame, int length, unsigned char **package) 
 
 	while (state != 4) {
 		switch (state) {
-		case 0:
+			case 0:
 			if (frame[0] == A)
 				state++;
 			else
 				return -1;
 			break;
-		case 1:
+			case 1:
 			if (frame[1] != ns) //TODO VERIFICAR isto! tem que ser diferente ou igual??
 				state++;
 			else
 				return -2;
 			break;
-		case 2:
+			case 2:
 			if (frame[0] ^ frame[1] == frame[2])
 				state++;
 			else
 				return -3;
 			break;
-		case 3: {
-			unsigned char bcc = frame[3];
-			for (i = 3; i < length - 1; i++) {
-				bcc ^= frame[i];
+			case 3: {
+				unsigned char bcc = frame[3];
+				for (i = 3; i < length - 1; i++) {
+					bcc ^= frame[i];
+				}
+				if (bcc == frame[length - 1])
+					state++;
+				else
+					return -4;
 			}
-			if (bcc == frame[length - 1])
-				state++;
-			else
-				return -4;
-		}
 			break;
 
 		}
