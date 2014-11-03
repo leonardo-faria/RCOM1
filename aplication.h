@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <string.h>
+#include <math.h>
 #include "dataLink.h"
 
 int create_control_package(unsigned char type, unsigned char* name,
@@ -24,7 +25,7 @@ int alread(int fd);
 void alwrite(int fd, char* file_name, int name_size);
 
 int controlPackageStateMachine(unsigned char *frame, int control,
-		char* fileName, int* fileSize);
+		char** fileName, int* fileSize);
 
 int dataPackageStateMachine(unsigned char *frame, int control,
-		int sequenceNumber, unsigned char *data);
+		int sequenceNumber, unsigned char **data);

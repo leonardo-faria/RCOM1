@@ -4,4 +4,4 @@ SOURCES= aplication.c dataLink.c
 EXECUTABLE=rcom
 
 all:
-	$(CC) $(CFLAGS) $(SOURCES) -o $(EXECUTABLE)
+	$(CC) $(CFLAGS) $(SOURCES) -o $(EXECUTABLE) -lm
