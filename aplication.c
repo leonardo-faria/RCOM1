@@ -19,8 +19,8 @@ int create_control_package(unsigned char type, unsigned char* name,
 	int size_size = 0;
 
 	while (file_size > 0) {
-		size_str[size_size++] = file_size % 256;
-		file_size = file_size / 256;
+		size_str[size_size++] = file_size % DATA_SIZE;
+		file_size = file_size / DATA_SIZE;
 	}
 	(*package) = malloc(4 + size_size + name_size + 1);
 	(*package)[0] = type;
