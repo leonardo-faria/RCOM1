@@ -40,6 +40,14 @@ int PACK_SIZE;
 int DATA_SIZE;
 int ns;
 
+int bytesWritedReaded;
+
+int timeout;
+int falhas;
+int textMode;
+int numRetransmissoes;
+int timeoutTime;
+
 int timeout;
 int falhas;
 
