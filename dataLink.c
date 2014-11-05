@@ -9,17 +9,18 @@ int llwrite(int fd, unsigned char * buffer, int length) {
 	stuffed = malloc(length * 2);
 	int stuff_size = stuffing(frame, frame_size, &stuffed);
 	falhas = 0;
-	while (falhas < 3) {
-		timeout=0;
+	while (falhas < numRetransmissoes) {
+		timeout = 0;
 		int missing = stuff_size;
 		int num = 0;
 		while (missing > 0) {
 			num = write(fd, stuffed, missing);
-			printf("Wrote %d bytes\n",num);
+			if (textMode)
+				printf("Wrote %d bytes\n", num);
 			stuffed += num;
 			missing -= num;
 		}
-		stuffed-=stuff_size;
+		stuffed -= stuff_size;
 		unsigned char* rr;
 		if (ns == 0)
 			create_control_frame(RR1, &rr);
@@ -27,9 +28,9 @@ int llwrite(int fd, unsigned char * buffer, int length) {
 			create_control_frame(RR0, &rr);
 		alarm(timeoutTime);
 		if (controlStateMachine(fd, rr) == 0)
-			break;		
+			break;
 	}
-	if(falhas >= 3 )
+	if (falhas >= numRetransmissoes)
 		return -1;
 	if (ns == 0)
 		ns = 1;
@@ -38,9 +39,9 @@ int llwrite(int fd, unsigned char * buffer, int length) {
 	return frame_size;
 }
 
-void send_reject(int fd)
-{
-	printf("Writing REJ\n");
+void send_reject(int fd) {
+	if (textMode)
+		printf("Writing REJ\n");
 	unsigned char* rej;
 	int missing;
 	if (ns == 0)
@@ -71,13 +72,12 @@ int llread(int fd, unsigned char** buffer) {
 
 		while (timeout != 1 && !stop) {
 			int r = read(fd, &stuffed[stuff_size], 1);
-			if(r>0)
-			{
-				if(stuff_size!=0 && stuffed[stuff_size]==F)
-					stop=1;
-				else if(stuff_size==0 && stuffed[0]==F)
-					start=1;
-				if(start)
+			if (r > 0) {
+				if (stuff_size != 0 && stuffed[stuff_size] == F)
+					stop = 1;
+				else if (stuff_size == 0 && stuffed[0] == F)
+					start = 1;
+				if (start)
 					stuff_size += r;
 			}
 		}
@@ -85,27 +85,24 @@ int llread(int fd, unsigned char** buffer) {
 			timeout = 0;
 			continue;
 		}
-		falhas=0;
+		falhas = 0;
 		alarm(0);
 		unsigned char* frame;
-		
+
 		int frame_size = destuffing(stuffed, stuff_size, &frame);
-		
-		
-		if(frame_size < 0)
-		{
+
+		if (frame_size < 0) {
 			//send_reject(fd);
 			continue;
 		}
-		
+
 		pack_size = infoStateMachine(frame, frame_size, buffer);
-		
-		if(pack_size < 0)
-		{
+
+		if (pack_size < 0) {
 			//send_reject(fd);
 			continue;
 		}
-		
+
 		if (pack_size >= 0) {
 			unsigned char* rr;
 			int missing;
@@ -129,7 +126,7 @@ int llread(int fd, unsigned char** buffer) {
 		ns = 1;
 	else
 		ns = 0;
-	if (falhas < 3)
+	if (falhas < numRetransmissoes)
 		return pack_size;
 	return -1;
 }
@@ -188,7 +185,8 @@ int create_control_frame(unsigned char control, unsigned char** frame) {
 	return 5;
 }
 
-int create_info_frame(int ns, unsigned char *packages, int packages_size, unsigned char** frame) {
+int create_info_frame(int ns, unsigned char *packages, int packages_size,
+		unsigned char** frame) {
 	(*frame) = malloc(packages_size + 4);
 	(*frame)[0] = A;
 	if (ns == 0)
@@ -200,7 +198,7 @@ int create_info_frame(int ns, unsigned char *packages, int packages_size, unsign
 	unsigned char bcc = 0;
 	for (i = 0; i < packages_size; ++i) {
 		(*frame)[i + 3] = packages[i];
-		bcc ^=  packages[i];
+		bcc ^= packages[i];
 	}
 	(*frame)[i + 3] = bcc;
 
@@ -234,14 +232,15 @@ int llopen(AppLayer apl) {
 	timeout = 0;
 
 	if (apl.mode == 0) { //EMISSOR
-		while (falhas < 3) {
+		while (falhas < numRetransmissoes) {
 			timeout = 0;
 			unsigned char *set;
 			int size = create_control_frame(SET, &set);
 
 			int num = 0;
 			int missing = size;
-			printf("Sender is writing SET.\n");
+			if (textMode)
+				printf("Sender is writing SET.\n");
 			while (missing > 0) {
 				num = write(apl.fileDescriptor, set, missing);
 				set += num;
@@ -251,21 +250,24 @@ int llopen(AppLayer apl) {
 			create_control_frame(UA, &ua);
 			alarm(timeoutTime);
 			if (controlStateMachine(apl.fileDescriptor, ua) == 0) {
-				printf("Read  UA.\n");
+				if (textMode)
+					printf("Read  UA.\n");
 				break;
 			}
 		}
 	} else { //RECETOR
-		while (falhas < 3) {
+		while (falhas < numRetransmissoes) {
 			unsigned char *set;
 			create_control_frame(SET, &set);
 
 			timeout = 0;
 			alarm(timeoutTime);
 
-			printf("Reading SET\n");
+			if (textMode)
+				printf("Reading SET\n");
 			if (controlStateMachine(apl.fileDescriptor, set) == 0) {
-				printf("SET received correctly. Receiver is writing UA.\n");
+				if (textMode)
+					printf("SET received correctly. Receiver is writing UA.\n");
 
 				unsigned char *ua;
 				int size = create_control_frame(UA, &ua);
@@ -281,7 +283,7 @@ int llopen(AppLayer apl) {
 			}
 		}
 	}
-	if (falhas >= 3)
+	if (falhas >= numRetransmissoes)
 		return -1; //erro
 	else
 		return 0; //sucesso
@@ -292,9 +294,10 @@ int llclose(AppLayer apl) {
 	falhas = 0;
 	timeout = 0;
 	if (apl.mode == 0) {
-		while (falhas < 3) {
+		while (falhas < numRetransmissoes) {
 			timeout = 0;
-			printf("Writing DISC\n");
+			if (textMode)
+				printf("Writing DISC\n");
 			unsigned char *disc;
 			int size = create_control_frame(DISC, &disc);
 			num = 0;
@@ -308,7 +311,8 @@ int llclose(AppLayer apl) {
 			disc -= num;
 			alarm(timeoutTime);
 			if (controlStateMachine(apl.fileDescriptor, disc) == 0) {
-				printf("DISC received. Sending UA!\n");
+				if (textMode)
+					printf("DISC received. Sending UA!\n");
 				unsigned char *ua;
 				int size = create_control_frame(UA, &ua);
 				num = 0;
@@ -324,11 +328,12 @@ int llclose(AppLayer apl) {
 	} else {
 		unsigned char *disc;
 		int size = create_control_frame(DISC, &disc);
-		while (falhas < 3) {
+		while (falhas < numRetransmissoes) {
 			timeout = 0;
 			alarm(timeoutTime);
 			if (controlStateMachine(apl.fileDescriptor, disc) == 0) {
-				printf("DISC received. Sending it again!\n");
+				if (textMode)
+					printf("DISC received. Sending it again!\n");
 				num = 0;
 				int missing = size;
 
@@ -342,7 +347,8 @@ int llclose(AppLayer apl) {
 				create_control_frame(UA, &ua);
 
 				if (controlStateMachine(apl.fileDescriptor, ua) == 0) {
-					printf("UA received!\n");
+					if (textMode)
+						printf("UA received!\n");
 					break;
 				}
 			}
@@ -355,7 +361,8 @@ int llclose(AppLayer apl) {
 		return -1; //erro
 }
 void alarmhandler(int signo) {
-	printf("Failed to finish read\n");
+	if (textMode)
+		printf("Failed to finish read\n");
 	falhas++;
 	timeout = 1;
 }
@@ -376,7 +383,8 @@ int controlStateMachine(int fd, unsigned char trama[5]) {
 			case 1:
 				if (*temp == trama[1])
 					state = 2;
-				else return -1;
+				else
+					return -1;
 				break;
 			case 2:
 				if (*temp == trama[0])
@@ -423,7 +431,7 @@ int infoStateMachine(unsigned char *frame, int length, unsigned char **package) 
 				return -1;
 			break;
 		case 1:
-			if ((ns == 0 && frame[1] == 0x00) ||(ns == 1 && frame[1] == 0x40))
+			if ((ns == 0 && frame[1] == 0x00) || (ns == 1 && frame[1] == 0x40))
 				state++;
 			else
 				return -2;
@@ -450,7 +458,7 @@ int infoStateMachine(unsigned char *frame, int length, unsigned char **package) 
 		}
 	}
 	(*package) = malloc(length - 4);
-	for (i = 3; i < length ; i++) {
+	for (i = 3; i < length; i++) {
 		(*package)[i - 3] = frame[i];
 	}
 	return length - 4;
