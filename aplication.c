@@ -75,7 +75,7 @@ int alread(int fd) {
 		unsigned char *data;
 		int n = dataPackageStateMachine(package, 1, sequenceNumber, &data);
 		if (textMode)
-			printf("Pack with %d bytes readed.\n", pack_size);
+			printf("Pack with %d bytes read.\n", pack_size);
 		if (n > 0) {
 			write(file, data, n);
 			sequenceNumber++;
@@ -271,7 +271,7 @@ void alwrite(int fd, char* file_name, int name_size) {
 
 	}
 	if (textMode)
-		printf("%d bytes readed from file\n", bytesWritedReaded);
+		printf("%d bytes read from file\n", bytesWritedReaded);
 }
 
 int main(int argc, char** argv) {
@@ -294,7 +294,7 @@ int main(int argc, char** argv) {
 		printf(
 				"Usage:\trcom SerialPort Mode\n\tex: rcom /dev/ttySX Y \n\tX is the port number and Y defines if transmiter (0) or receiver(1).\n");
 		printf(
-				"Flags:\n\t-v Show text: 0 if false, 1 if true\n\t-r Max atemps to resend\n\t-f File to send\n\t-t Timeout in seconds\n\t-p Package size in bytes\n\t-b Baudrate\n");
+				"Flags:\n\t-v Show text: 0 if false, 1 if true\n\t-r Max atemps to resend\n\t-f File to send\n\t-t Timeout in seconds\n\t-p Package size in bytes\n");
 		exit(-1);
 	}
 
